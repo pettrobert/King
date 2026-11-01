@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>King, Warrior, Magician, Lover: Daily Tracker</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="KWML">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#10161C">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#E8EBEE;--surface:#F6F7F8;--ink:#14202B;--muted:#56626E;--line:#C9D0D6;
+  --k:#8A6A00;--w:#A8321F;--m:#3F4FB0;--l:#A33A68;
+  --serif:Georgia,"Times New Roman",serif;--sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#10161C;--surface:#18212A;--ink:#E7EBEF;--muted:#9AA6B2;--line:#2B3744;
+    --k:#E2B33C;--w:#E8654F;--m:#8F9CF2;--l:#E58AB0;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#10161C;--surface:#18212A;--ink:#E7EBEF;--muted:#9AA6B2;--line:#2B3744;
+  --k:#E2B33C;--w:#E8654F;--m:#8F9CF2;--l:#E58AB0;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--sans)}
+main{max-width:560px;margin:0 auto;padding:20px 16px 48px}
+h1{font:700 30px/1.1 var(--serif);margin:8px 0 4px}
+.sub{color:var(--muted);margin:0 0 18px;font-size:14px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:22px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 0 8px;text-align:center;font-size:12px;color:var(--muted)}
+.day.today{border-color:var(--ink);color:var(--ink);font-weight:600}
+.day b{display:block;font:700 17px/1.2 var(--serif);color:var(--ink)}
+.bar{height:4px;margin:6px 8px 0;background:var(--line);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink)}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.total strong{font:700 22px var(--serif)}
+section{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:10px;margin-bottom:14px;padding:14px 14px 6px}
+section h2{font:700 22px/1.2 var(--serif);margin:0;color:var(--c)}
+section p{margin:0 0 6px;font-size:13px;color:var(--muted)}
+label{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line);cursor:pointer;min-height:44px}
+label:first-of-type{border-top:0}
+input{appearance:none;-webkit-appearance:none;flex:none;width:24px;height:24px;margin:0;border:2px solid var(--c);border-radius:6px;display:grid;place-items:center;background:transparent;cursor:pointer}
+input:checked{background:var(--c)}
+input:checked::after{content:"";width:6px;height:11px;border:solid var(--surface);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+input:checked+span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.shadow{margin:6px 0 10px;font-size:13px;color:var(--muted)}
+.shadow em{font-style:normal;font-weight:600;color:var(--c)}
+footer{display:flex;gap:10px;margin-top:6px}
+button{font:500 14px var(--sans);color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:8px;padding:10px 14px;min-height:44px;cursor:pointer}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Daily practice</h1>
+  <p class="sub">Four archetypes, sixteen small acts. Progress is saved on this device.</p>
+  <div class="week" id="week" aria-label="Last seven days"></div>
+  <div class="total"><span>Today</span><strong id="total">0 of 16</strong></div>
+  <div id="groups"></div>
+  <footer><button id="clear">Clear today</button></footer>
+</main>
+<script>
+var GROUPS=[
+ {id:"k",name:"King",tag:"Order, blessing, generosity",items:[
+  "Write tomorrow’s three priorities tonight",
+  "Bless someone with a specific, sincere compliment",
+  "Keep one promise to yourself",
+  "Ask what your people need from you before what you want"],
+  shadow:"Tyrant or Weakling"},
+ {id:"w",name:"Warrior",tag:"Discipline, courage, boundaries",items:[
+  "Do one hard physical thing",
+  "Do the task you’re avoiding before checking your phone",
+  "Say one honest no or hold one boundary",
+  "End the day with a review: did I act on my values?"],
+  shadow:"Sadist or Masochist"},
+ {id:"m",name:"Magician",tag:"Awareness, knowledge, reflection",items:[
+  "Read something that stretches you for 10 to 20 minutes",
+  "Journal what you noticed about your reactions",
+  "Sit in silence for 10 minutes",
+  "Learn one thing and teach it to someone"],
+  shadow:"Manipulator or Innocent One"},
+ {id:"l",name:"Lover",tag:"Connection, feeling, appreciation",items:[
+  "Write down three things you’re grateful for",
+  "Give 15 undistracted minutes to someone you love",
+  "Let nature, music, or art move you",
+  "Reach out to one friend"],
+  shadow:"Addicted or Impotent Lover"}
+];
+var KEY="kwml-v1",N=16,data={};
+function load(){try{data=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){data={}}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}}
+function dk(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
+function today(){return dk(new Date())}
+function done(k){return data[k]||[]}
+function renderWeek(){
+  var w=document.getElementById("week"),h="",names=["Su","Mo","Tu","We","Th","Fr","Sa"];
+  for(var i=6;i>=0;i--){
+    var d=new Date();d.setDate(d.getDate()-i);var k=dk(d),c=done(k).length;
+    h+='<div class="day'+(i===0?" today":"")+'">'+names[d.getDay()]+'<b>'+c+'</b><div class="bar"><i style="width:'+Math.round(c/N*100)+'%"></i></div></div>';
+  }
+  w.innerHTML=h;
+  document.getElementById("total").textContent=done(today()).length+" of "+N;
+}
+function renderGroups(){
+  var t=done(today()),h="";
+  GROUPS.forEach(function(g){
+    h+='<section style="--c:var(--'+g.id+')"><h2>'+g.name+'</h2><p>'+g.tag+'</p>';
+    g.items.forEach(function(txt,i){
+      var id=g.id+i;
+      h+='<label><input type="checkbox" data-id="'+id+'"'+(t.indexOf(id)>-1?" checked":"")+'><span>'+txt+'</span></label>';
+    });
+    h+='<div class="shadow">Shadow to watch: <em>'+g.shadow+'</em></div></section>';
+  });
+  document.getElementById("groups").innerHTML=h;
+}
+document.getElementById("groups").addEventListener("change",function(e){
+  var id=e.target.getAttribute("data-id");if(!id)return;
+  var k=today(),a=done(k).slice(),i=a.indexOf(id);
+  if(e.target.checked&&i<0)a.push(id);
+  if(!e.target.checked&&i>-1)a.splice(i,1);
+  data[k]=a;save();renderWeek();
+});
+document.getElementById("clear").addEventListener("click",function(){
+  data[today()]=[];save();renderGroups();renderWeek();
+});
+load();renderGroups();renderWeek();
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}
+</script>
+</body>
+</html>
